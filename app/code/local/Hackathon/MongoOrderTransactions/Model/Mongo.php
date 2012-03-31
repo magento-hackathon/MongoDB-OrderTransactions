@@ -127,6 +127,7 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
             );
         }
         $orderId = Mage::helper('hackathon_ordertransaction')->getNewOrderIdFromSequence();
+        $order->setId($orderId);
         $mongoOrder->setId($orderId)
             ->unsetData('customer')
             ->unsetData('quote');
