@@ -1,2 +1,2 @@
 
-Hackathon Team: Anthony, Andreas, Rouven, Allistair, Vinai
+Hackathon Team: Anthony, Andreas, Rouven, Alistair, Vinai, Matthias
