@@ -12,19 +12,21 @@ class Hackathon_MongoOrderTransactions_Model_Queue_Processor
      **/
     public function merge()
     {
-        $quotes = Mage::getModel('hackathon_ordertransaction/mongo')->getQuotes();
+        $mongo = Mage::getModel('hackathon_ordertransaction/mongo');
+        $quotes = $mongo->getQuotes();
         foreach ($quotes as $quote) {
             try {
-                // Update Mongo
-                $mongo = Mage::getModel('hackathon_ordertransaction/mongo');
                 $mongo->setToDelete($quote['quote_id']);
                 $persistentOrder = Mage::getResourceModel('sales/order');
                 $persistentOrder->setData($quote['order']);
                 $persistentOrder->save();
+                unset($persistentOrder);
             } catch (Exception $e) {
                 $mongo->revertToOrder($quote['quote_id']);
+                Mage::logException($e);
             }
         }
+        unset($quotes, $mongo);
     }
 
     /**
