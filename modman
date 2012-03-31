@@ -1,5 +1,5 @@
 
 
 app/code/local/Hackathon/MongoOrderTransactions app/code/local/Hackathon/MongoOrderTransactions
-app/etc/Hackathon_MongoOrderTransactions.xml app/etc/Hackathon_MongoOrderTransactions.xml
+app/etc/modules/Hackathon_MongoOrderTransactions.xml app/etc/modman/Hackathon_MongoOrderTransactions.xml
 
