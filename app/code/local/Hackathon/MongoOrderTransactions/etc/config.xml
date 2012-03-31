@@ -1,4 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
-
+    <global>
+        <models>
+            <hackathon_ordertransaction>
+                <class>Hackathon_MongoOrderTransaction_Model</class>
+                <resourceModel>hackathon_ordertransaction_resource</resourceModel>
+            </hackathon_ordertransaction>
+            <hackathon_ordertransaction>
+                <class>Hackathon_MongoOrderTransaction_Model_Resource</class>
+                <entities>
+                    <order><table>hackathon_ordertransaction_order</table></order>
+                </entities>
+            </hackathon_ordertransaction>
+        </models>
+    </global>
+    <default>
+        <mongotransaction>
+            <db>ordertransactions</db>
+        </mongotransaction>
+    </default>
 </config>
