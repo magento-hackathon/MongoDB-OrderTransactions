@@ -23,6 +23,11 @@
                 </rewrite>
             </sales>
         </models>
+        <helpers>
+            <hackathon_ordertransaction>
+                <class>Hackathon_MongoOrderTransactions_Helper</class>
+            </hackathon_ordertransaction>
+        </helpers>
         <resources>
             <hackathon_ordertransaction_setup>
                 <setup>
