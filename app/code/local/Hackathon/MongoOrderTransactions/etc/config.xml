@@ -41,7 +41,7 @@
             <checkout_cart_product_add_after>
                 <observers>
                     <updateStockInMongoEvent>
-                        <class>Hackathon_MongoOrderTransactions_Model_Observer</class>
+                        <class>hackathon_ordertransaction/observer</class>
                         <method>checkoutCartProductAddAfter</method>
                         <type>singleton</type>
                     </updateStockInMongoEvent>
