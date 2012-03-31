@@ -1,19 +1,14 @@
 <?php
 
-class Hackathon_MongoOrderTransactions_Model_Mongo extends Mage_Core_Model_Abstract
+class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
 {
     private $_mogodb = false;
 
     private $_tblSales = false;
 
-    protected function _construct()
-    {
-        $this->_init('hackathon_ordertransaction/mongo');
-    }
 
 
-
-    private function _connect() {
+    protected function _construct() {
         // automatische Verbindung mit localhost:27017
         $mongo = new Mongo();
 
@@ -26,31 +21,42 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Mage_Core_Model_Abstr
 
     }
 
-    public function setState() {
+    private function setState($state) {
+
+        $this->setState($state);
+
+        return $this;
+    }
+
+    public function addItem($productId,$qty) {
+        $items = $this->getItems();
+        $items[$productId] = $qty;
+        $this->setItems($items);
+
+        return $this;
+    }
+
+    public function removeItem($productId) {
 
     }
 
-    public function addItem() {
+    public function setQuoteId($quoteId) {
+        $this->setQuoteId($quoteId);
 
+        return $this;
     }
 
-    public function setQuoteId() {
+   
+    public function insertQuote() {
+        $this->setState('quote');
 
-    }
-
-    public function test() {
-        
-    }
-
-    public function insertQuote($data) {
         $data = array(
-            'state' => 'quote',
-            'items' => array(
-                1 => 'test1',
-                2 => 'test2'
-            ),
-            'quote_id' => 991
+            'state' => $this->getState(),
+            'items' => $this->getItems(),
+            'quote_id' => $this->getQutoeId(),
         );
+
+
 
         $this->_tblSales->insert($data);
 
@@ -59,6 +65,17 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Mage_Core_Model_Abstr
     public function getQuotes() {
         $quote = $this->_tblSales->findOne(array('quote_id' => 991));
         var_dump($quote);
+    }
+
+    public function loadQuote($quoteId) {
+        $quote = $this->_tblSales->findOne($quoteId);
+        $this->setData($quote);
+
+        return $this;
+    }
+
+    public function saveQuote() {
+
     }
 
 }
