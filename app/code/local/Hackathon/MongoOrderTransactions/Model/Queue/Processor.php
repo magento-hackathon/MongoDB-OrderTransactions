@@ -8,46 +8,22 @@ class Hackathon_MongoOrderTransactions_Model_Queue_Processor
      * Select all the Mongo DB orders and merge them to the
      * MySQL DB
      *
-     * @return void
+     * @return null
      **/
     public function merge()
     {
-        try {
-            // @TODO retrieve and merge the data
-            $order = Mage::getModel('hackathon_ordertransaction/order');
-            // Turn the result array into a single DB insert?
-            $quote = Mage::getModel('sales/quote');
-            $quote->setStoreId($order->getStoreId());
-            $quote->setCustomerEmail($order->getCustomerEmail());
-            
-            // Do we need to construct a product to add it?
-            foreach ($order->getAllItems() as $item) {
-                $quote->addProduct($item);
+        $quotes = Mage::getModel('hackathon_ordertransaction/mongo')->getQuotes();
+        foreach ($quotes as $quote) {
+            try {
+                // Update Mongo
+                $mongo = Mage::getModel('hackathon_ordertransaction/mongo');
+                $mongo->setToDelete($quote['quote_id']);
+                $persistentOrder = Mage::getResourceModel('sales/order');
+                $persistentOrder->setData($quote['order']);
+                $persistentOrder->save();
+            } catch (Exception $e) {
+                $mongo->revertToOrder($quote['quote_id']);
             }
-
-            $addressData = array(
-                'firstname' => 'Test',
-                'lastname' => 'Test',
-                'street' => 'Sample Street 10',
-                'city' => 'Somewhere',
-                'postcode' => '12345',
-                'telephone' => '1234567890',
-                'country_id' => 'DE',
-                'region_id' => 80,
-            );
-
-            $billingAddress = $quote->getBillingAddress()->addData($addressData);
-            $shippingAddress = $quote->getShippingAddress()->addData($addressData);
-
-            $shippingAddress->setCollectShippingRates(true)
-                ->collectShippingRates()
-                ->setShippingMethod('flatrate_flatrate')
-                ->setPaymentMethod('checkmo');
-
-            $serviceQuote = Mage::getModel('sales/service_quote', $quote);
-            $serviceQuote->submitAll();
-        } catch (Exception $e) {
-            Mage::logException($e);
         }
     }
 
@@ -60,7 +36,7 @@ class Hackathon_MongoOrderTransactions_Model_Queue_Processor
     public function clean()
     {
         try {
-            Mage::getModel('hackathon_ordertransaction/order')->deleteProcessedOrders();
+            Mage::getModel('hackathon_ordertransaction/mongo')->clean();
         } catch (Exception $e) {
             Mage::logException($e);
         }
