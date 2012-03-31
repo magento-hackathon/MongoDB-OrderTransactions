@@ -86,10 +86,29 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
         }
     }
 
-    public function saveQuote() {
+    /**
+	 * Saves the quote in MongoDB.
+	 * 
+	 * @todo: update insertQuote() to use saveQuote() or refactor code
+	 *        to use saveQuote() as save() does automatically choose correctly
+	 *        between update and insert. 
+	 * 
+	 * @return void
+	 */
+	public function saveQuote()
+	{
+		$this->setState('quote');
+		
+        $data = array(
+        	'_id' => new MongoId($this->getId()),
+            'state' => $this->getState(),
+            'items' => $this->getItems(),
+            'quote_id' => $this->getQuoteId(),
+        );
 
-    }
-
+        $this->_tblSales->save($data);
+	}
+	
     public function saveOrder(Mage_Sales_Model_Order $order)
     {
         $quoteId = $order->getQuoteId();
