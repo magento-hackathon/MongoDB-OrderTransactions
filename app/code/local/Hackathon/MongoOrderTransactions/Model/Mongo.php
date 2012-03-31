@@ -120,7 +120,6 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
         $mongoOrder = clone $order;
         $quoteId = $mongoOrder->getQuoteId();
         $this->loadQuote($quoteId);
-        Mage::log(array('_id' => $this->getId(), 'quote_id' => $quoteId));
         if (! $this->getId())
         {
             Mage::throwException(
@@ -131,21 +130,11 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
         $mongoOrder->setId($orderId)
             ->unsetData('customer')
             ->unsetData('quote');
-        Mage::log(
-            array(
-                array('_id' => new MongoId($this->getId())),
-                array('$set' => array(
-                    'order' => $mongoOrder->debug(),
-                    'state' => 'order'
-                ))
-            )
-        );
         $this->_tblSales->update(array('_id' => new MongoId($this->getId())), array('$set' => array(
             'order' => $mongoOrder->getData(),
             'state' => 'order'
         )));
         $this->loadQuote($quoteId);
-        Mage::log($this->debug());
 
         return $this;
     }
