@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <modules>
+        <Hackathon_MongoOrderTransactions>
+            <active>true</active>
+            <codePool>local</codePool>
+            <depends>
+                <Mage_Sales/>
+                <Mage_Core/>
+            </depends>
+        </Hackathon_MongoOrderTransactions>
+    </modules>
+</config>
