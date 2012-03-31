@@ -1,6 +1,6 @@
 <?php
 
-class Hackathon_MongoOrderTransactions_Helper_Data extends Mage_Core_Model_Abstract
+class Hackathon_MongoOrderTransactions_Helper_Data extends Mage_Core_Helper_Abstract
 {
     public function getMongoDbName()
     {

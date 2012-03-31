@@ -6,13 +6,30 @@ class Hackathon_MongoOrderTransactions_Model_Sales_Order extends Mage_Sales_Mode
     {
         if (!$this->getId())
         {
-            $this->_getMongo()->saveOrder($this;
+            $this->_getMongo()->saveOrder($this);
         }
         else
         {
             return parent::save();
         }
+    }
 
+    public function load($id, $field = null)
+    {
+        parent::load($id, $field);
+        if (! $this->getId())
+        {
+            if (is_null($field))
+            {
+                $field = $this->getResource()->getIdFieldName();
+            }
+            $mongoOrder = $this->_getMongo()->loadOrder($id, $field);
+            if ($mongoOrder->getId())
+            {
+                $this->setData($mongoOrder->getOrder());
+            }
+        }
+        return $this;
     }
 
     /**

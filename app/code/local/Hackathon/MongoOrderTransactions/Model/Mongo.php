@@ -2,8 +2,14 @@
 
 class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
 {
+    /**
+     * @var MongoDB
+     */
     private $_mogodb = false;
 
+    /**
+     * @var MongoCollection
+     */
     private $_tblSales = false;
 
 
@@ -97,13 +103,27 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
         if (! $this->getId())
         {
             Mage::throwException(
-                Mage::helper('hackathon_ordertransactions')->__('No associated quote with ID %s found in mongoDb', $quoteId)
+                Mage::helper('hackathon_ordertransaction')->__('No associated quote with ID %s found in mongoDb', $quoteId)
             );
         }
+        $orderId = Mage::helper('hackathon_ordertransaction')->getNewOrderIdFromSequence();
+        $order->setId($orderId);
         $this->_tblSales->update(array('quote_id' => $quoteId), array('$set' => array(
             'order' => $order->getData(),
             'state' => 'order'
         )));
+        return $this;
+    }
+
+    public function loadOrder($id, $field)
+    {
+        $this->setData(array());
+        $this->_tblSales->ensureIndex("order.$field");
+        $result = $this->_tblSales->findOne(array("order.$field" => $id));
+        if ($result['_id'])
+        {
+            $this->setData($result);
+        }
         return $this;
     }
 
