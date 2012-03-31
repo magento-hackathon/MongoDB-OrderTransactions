@@ -14,7 +14,7 @@
             </hackathon_ordertransaction_resource>
             <sales>
                 <rewrite>
-                    <service_quote>Hackathon_MongoOrderTransactions_Model_Sales_Service_Quote</service_quote>
+                    <order>Hackathon_MongoOrderTransactions_Model_Sales_Order</order>
                 </rewrite>
             </sales>
         </models>
