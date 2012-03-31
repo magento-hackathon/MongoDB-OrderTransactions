@@ -81,10 +81,9 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
     }
 
     public function deleteQuote($quoteId) {
-        $this->loadQuote($quoteId);
-            if($this->getId() !== false) {
-
-            }
+        if($this->getId() !== false) {
+            $this->_tblSales->remove(array('quote_id' => $quoteId, 'justOne' => true));
+        }
     }
 
     public function saveQuote() {
@@ -101,11 +100,56 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
                 Mage::helper('hackathon_ordertransactions')->__('No associated quote with ID %s found in mongoDb', $quoteId)
             );
         }
-        $quote->_tblSales->update(array('quote_id' => $quoteId), array('$set' => array(
+        $this->_tblSales->update(array('quote_id' => $quoteId), array('$set' => array(
             'order' => $order->getData(),
             'state' => 'order'
         )));
         return $this;
+    }
+
+    /**
+     * Set the state to be deleted when cleanup is run
+     *
+     * @return null
+     **/
+    public function setToDelete($quoteId)
+    {
+        $this->_tblSales->update(
+            array('quote_id' => $quoteId), array(
+                '$set' => array(
+                    'state' => 'delete'
+                )
+            )
+        );
+    }
+
+    /**
+     * Set the state to be order
+     *
+     * To be used as a rollback function should the save
+     * to persistent DB.
+     *
+     * @return null
+     **/
+    public function revertToOrder($quoteId)
+    {
+        $this->_tblSales->update(
+            array('quote_id' => $quoteId), array(
+                '$set' => array(
+                    'state' => 'order'
+                )
+            )
+        );
+    }
+
+    /**
+     * Remove all quotes with a state of delete
+     *
+     * @return null
+     **/
+    public function clean()
+    {
+        $this->_tblSales->remove(array('state' => 'delete'));
     }
 
 }
