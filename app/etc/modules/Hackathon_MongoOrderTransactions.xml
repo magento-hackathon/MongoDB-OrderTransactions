@@ -7,7 +7,6 @@
             <depends>
                 <Mage_Sales/>
                 <Mage_Core/>
-                <Cm_Mongo/>
             </depends>
         </Hackathon_MongoOrderTransactions>
     </modules>

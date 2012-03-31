@@ -3,15 +3,15 @@
     <global>
         <models>
             <hackathon_ordertransaction>
-                <class>Hackathon_MongoOrderTransaction_Model</class>
+                <class>Hackathon_MongoOrderTransactions_Model</class>
                 <resourceModel>hackathon_ordertransaction_resource</resourceModel>
             </hackathon_ordertransaction>
-            <hackathon_ordertransaction>
-                <class>Hackathon_MongoOrderTransaction_Model_Resource</class>
+            <hackathon_ordertransaction_resource>
+                <class>Hackathon_MongoOrderTransactions_Model_Resource</class>
                 <entities>
                     <order><table>hackathon_ordertransaction_order</table></order>
                 </entities>
-            </hackathon_ordertransaction>
+            </hackathon_ordertransaction_resource>
         </models>
     </global>
     <default>
