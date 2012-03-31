@@ -22,8 +22,7 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
     }
 
     private function setState($state) {
-
-        parent::setState($state);
+        $this->setData('state', $state);
 
         return $this;
     }
@@ -96,7 +95,7 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
     {
         $quoteId = $order->getQuoteId();
         $this->loadQuote($quoteId);
-        if (! $this->getData('_id'))
+        if (! $this->getId())
         {
             Mage::throwException(
                 Mage::helper('hackathon_ordertransactions')->__('No associated quote with ID %s found in mongoDb', $quoteId)
