@@ -56,7 +56,7 @@ class Hackathon_MongoOrderTransactions_Model_Sales_Service_Quote extends Mage_Sa
 
         $mongo = Mage::getSingleton('hackathon_ordertransaction/order')->saveOrder($order);
 
-/* VAK: This will be handled by the process runner and the
+/* VAK: This will be handled by the queue process
 
         $transaction->addObject($order);
         $transaction->addCommitCallback(array($order, 'place'));
