@@ -1,0 +1,6 @@
+default:
+  context:
+    parameters:
+      base_url: http://magentoce.development.local/
+      # browser: chrome
+      javascript_session: webdriver
