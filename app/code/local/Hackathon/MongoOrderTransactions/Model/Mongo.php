@@ -40,7 +40,7 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
     }
 
     public function setQuoteId($quoteId) {
-        parent::setQuoteId($quoteId);
+        $this->setData('quote_id',$quoteId);
 
         return $this;
     }
@@ -150,6 +150,30 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
     public function clean()
     {
         $this->_tblSales->remove(array('state' => 'delete'));
+            if($this->getId() !== false) {
+                $this->setState('deleted')
+                    ->updateQuote();
+            }
+        return $this;
+    }
+
+    public function updateQuote() {
+        if($this->getId() !== false) {
+            $data = array(
+            'state' => $this->getState(),
+            'items' => $this->getItems(),
+            'quote_id' => $this->getQuoteId(),
+            );
+            $this->_tblSales->update(array('_id' => new MongoId($this->getId())),array('$set' => $data));
+        } else {
+            throw new Exception('could not update quote (no id set)');
+        }
+        return $this;
+    }
+
+    public function truncate() {
+        $this->_tblSales->remove(array(), array("save" => true));
+        return $this;
     }
 
 }
