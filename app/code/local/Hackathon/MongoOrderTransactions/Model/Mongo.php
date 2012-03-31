@@ -38,6 +38,10 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Mage_Core_Model_Abstr
 
     }
 
+    public function test() {
+        
+    }
+
     public function insertQuote($data) {
         $data = array(
             'state' => 'quote',
