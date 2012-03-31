@@ -109,4 +109,14 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
         return $this;
     }
 
+    /**
+     * Remove all quotes with a state of delete
+     *
+     * @return null
+     **/
+    public function clean()
+    {
+        $this->_tblSales->remove(array('state' => 'delete'));
+    }
+
 }
