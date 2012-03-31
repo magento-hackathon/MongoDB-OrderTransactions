@@ -78,4 +78,21 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
 
     }
 
+    public function saveOrder(Mage_Sales_Model_Order $order)
+    {
+        $quoteId = $order->getQuoteId();
+        $this->loadQuote($quoteId);
+        if (! $this->getData('_id'))
+        {
+            Mage::throwException(
+                Mage::helper('hackathon_ordertransactions')->__('No associated quote with ID %s found in mongoDb', $quoteId)
+            );
+        }
+        $quote->_tblSales->update(array('quote_id' => $quoteId), array('$set' => array(
+            'order' => $order->getData(),
+            'state' => 'order'
+        )));
+        return $this;
+    }
+
 }
