@@ -36,15 +36,15 @@
             </hackathon_ordertransaction_setup>
         </resources>
         <events>
-            <checkout_cart_product_add_after>
+            <checkout_cart_save_after>
                 <observers>
-                    <updateStockInMongoEvent>
+                    <updateStockInMongoEvent3>
                         <class>hackathon_ordertransaction/observer</class>
-                        <method>checkoutCartProductAddAfter</method>
+                        <method>checkoutCartSaveAfter</method>
                         <type>singleton</type>
-                    </updateStockInMongoEvent>
+                    </updateStockInMongoEvent3>
                 </observers>
-            </checkout_cart_product_add_after>
+            </checkout_cart_save_after>
         </events>
     </global>
     <default>
