@@ -24,7 +24,6 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
         // $posts ist eine MongoCollection (vergleichbar mit SQL-Tabelle, wird automatisch angelegt)
 
         $this->_tblSales = $this->_mogodb->sales;
-
     }
 
     private function setState($state) {
@@ -61,16 +60,16 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
             'quote_id' => $this->getQuoteId(),
         );
 
-
-
         $this->_tblSales->insert($data);
-
     }
 
-    public function getId() {
+    public function getId()
+    {
         if(!is_object($this->getData('_id')))
-            return false;
-        return $this->getData('_id')->__toString();
+        {
+            return null;
+        }
+        return (string) $this->getData('_id');
     }
 
     public function getQuotes() {
@@ -87,7 +86,7 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
     }
 
     public function deleteQuote($quoteId) {
-        if($this->getId() !== false) {
+        if($this->getId()) {
             $this->_tblSales->remove(array('quote_id' => $quoteId, 'justOne' => true));
         }
     }
@@ -195,7 +194,7 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
     public function clean()
     {
         $this->_tblSales->remove(array('state' => 'delete'));
-            if($this->getId() !== false) {
+            if($this->getId()) {
                 $this->setState('deleted')
                     ->updateQuote();
             }
@@ -203,7 +202,7 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
     }
 
     public function updateQuote() {
-        if($this->getId() !== false) {
+        if($this->getId()) {
             $data = array(
             'state' => $this->getState(),
             'items' => $this->getItems(),
