@@ -35,8 +35,6 @@
                 </setup>
             </hackathon_ordertransaction_setup>
         </resources>
-    </global>
-    <frontend>
         <events>
             <checkout_cart_product_add_after>
                 <observers>
@@ -48,7 +46,7 @@
                 </observers>
             </checkout_cart_product_add_after>
         </events>
-    </frontend>
+    </global>
     <default>
         <mongotransaction>
             <db>ordertransactions</db>

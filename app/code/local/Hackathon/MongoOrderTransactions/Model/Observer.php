@@ -10,6 +10,7 @@ class Hackathon_MongoOrderTransactions_Model_Observer
      */
     public function checkoutCartProductAddAfter(Varien_Event_Observer $observer)
     {
+        Mage::log(__METHOD__);
     	$quoteItem = $observer->getEvent()->getQuoteItem();
 		
         $mongodb = Mage::getModel('hackathon_ordertransaction/mongo');
