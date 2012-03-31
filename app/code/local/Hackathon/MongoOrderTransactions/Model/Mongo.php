@@ -23,7 +23,7 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
 
     private function setState($state) {
 
-        $this->setState($state);
+        parent::setState($state);
 
         return $this;
     }
@@ -41,7 +41,7 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
     }
 
     public function setQuoteId($quoteId) {
-        $this->setQuoteId($quoteId);
+        parent::setQuoteId($quoteId);
 
         return $this;
     }
@@ -53,7 +53,7 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
         $data = array(
             'state' => $this->getState(),
             'items' => $this->getItems(),
-            'quote_id' => $this->getQutoeId(),
+            'quote_id' => $this->getQuoteId(),
         );
 
 
@@ -62,16 +62,30 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
 
     }
 
+    public function getId() {
+        if(!is_object($this->getData('_id')))
+            return false;
+        return $this->getData('_id')->__toString();
+    }
+
     public function getQuotes() {
-        $quote = $this->_tblSales->findOne(array('quote_id' => 991));
-        var_dump($quote);
+        $quotes = $this->_tblSales->find();
+        return $quotes;
     }
 
     public function loadQuote($quoteId) {
-        $quote = $this->_tblSales->findOne($quoteId);
+        $this->setData(array());
+        $quote = $this->_tblSales->findOne(array('quote_id' => $quoteId));
         $this->setData($quote);
 
         return $this;
+    }
+
+    public function deleteQuote($quoteId) {
+        $this->loadQuote($quoteId);
+            if($this->getId() !== false) {
+
+            }
     }
 
     public function saveQuote() {
