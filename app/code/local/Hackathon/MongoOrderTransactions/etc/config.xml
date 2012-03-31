@@ -12,6 +12,11 @@
                     <order><table>hackathon_ordertransaction_order</table></order>
                 </entities>
             </hackathon_ordertransaction_resource>
+            <sales>
+                <rewrite>
+                    <order>Hackathon_MongoOrderTransactions_Model_Sales_Order</order>
+                </rewrite>
+            </sales>
         </models>
     </global>
     <frontend>
