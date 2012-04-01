@@ -71,7 +71,6 @@ class Hackathon_MongoOrderTransactions_Model_Observer
         $items = $this->_getProductsQty($quoteItem->getQuote()->getAllItems());
 
 
-        //first
         //compare to mongodb
         $diff = $this->differncetoMongo($quoteItem->getQuoteId(),$items,$quoteItem->getProductId());
 
@@ -98,11 +97,12 @@ class Hackathon_MongoOrderTransactions_Model_Observer
                 ->saveQuote();
         }
 
-        //second
         //change the product stock
         if($diff < 0) {
             //increase catalog_inventory
-            Mage::getSingleton('cataloginventory/stock')->backItemQty($quoteItem->getProductId(), $diff);
+            Mage::log('product-id'.$quoteItem->getProductId());
+            Mage::log('abs-qty:'.print_r(abs($diff),true));
+            Mage::getSingleton('cataloginventory/stock')->backItemQty($quoteItem->getProductId(), abs($diff));
 
 Mage::log('back item qty:'.$diff);
             //@TODO TODO reindex needed?

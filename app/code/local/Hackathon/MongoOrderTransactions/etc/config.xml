@@ -54,6 +54,16 @@
                     </inventory>
                 </observers>
             </sales_quote_item_qty_set_after>
+            <sales_quote_remove_item>
+                <observers>
+                    <updateStockInMongoEvent2>
+                        <class>hackathon_ordertransaction/observer</class>
+                        <method>checkQuoteItemQty</method>
+                        <type>singleton</type>
+                    </updateStockInMongoEvent2>
+                </observers>
+            </sales_quote_remove_item>
+
             <sales_model_service_quote_submit_success>
                 <observers>
                     <updateStockInMongoEvent1>
