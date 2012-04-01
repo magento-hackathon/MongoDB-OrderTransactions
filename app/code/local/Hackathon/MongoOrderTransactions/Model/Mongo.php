@@ -12,6 +12,10 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
      */
     private $_tblSales = false;
 
+    const QUOTE = 'quote';
+    const ORDER = 'order';
+    const DELETE = 'delete';
+
 
 
     protected function _construct() {
@@ -50,9 +54,8 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
         return $this;
     }
 
-   
     public function insertQuote() {
-        $this->setState('quote');
+        $this->setState(self::QUOTE);
 
         $data = array(
             'state' => $this->getState(),
@@ -92,28 +95,28 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
     }
 
     /**
-	 * Saves the quote in MongoDB.
-	 * 
-	 * @todo: update insertQuote() to use saveQuote() or refactor code
-	 *        to use saveQuote() as save() does automatically choose correctly
-	 *        between update and insert. 
-	 * 
-	 * @return void
-	 */
-	public function saveQuote()
-	{
-		$this->setState('quote');
-		
+     * Saves the quote in MongoDB.
+     *
+     * @todo: update insertQuote() to use saveQuote() or refactor code
+     *        to use saveQuote() as save() does automatically choose correctly
+     *        between update and insert.
+     *
+     * @return void
+     */
+    public function saveQuote()
+    {
+        $this->setState(self::QUOTE);
+
         $data = array(
-        	'_id' => new MongoId($this->getId()),
+            '_id' => new MongoId($this->getId()),
             'state' => $this->getState(),
             'items' => $this->getItems(),
             'quote_id' => $this->getQuoteId(),
         );
 
         $this->_tblSales->save($data);
-	}
-	
+    }
+
     public function saveOrder(Mage_Sales_Model_Order $order)
     {
         $mongoOrder = clone $order;
@@ -132,7 +135,7 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
             ->unsetData('quote');
         $this->_tblSales->update(array('_id' => new MongoId($this->getId())), array('$set' => array(
             'order' => $mongoOrder->getData(),
-            'state' => 'order'
+            'state' => self::ORDER
         )));
         $this->loadQuote($quoteId);
 
@@ -161,7 +164,7 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
         $this->_tblSales->update(
             array('quote_id' => $quoteId), array(
                 '$set' => array(
-                    'state' => 'delete'
+                    'state' => self::DELETE
                 )
             )
         );
