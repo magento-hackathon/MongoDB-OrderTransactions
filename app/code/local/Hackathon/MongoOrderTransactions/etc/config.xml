@@ -64,6 +64,22 @@
             </mongoordertransactions_substract_quote_item_qty>
         </events>
     </global>
+    <crontab>
+        <jobs>
+            <processor_merge>
+                <schedule><cron_expr>*/5 * * * *</cron_expr></schedule>
+                <run>
+                    <model>hackathon_ordertransaction/queue_processor::merge</model>
+                </run>
+            </processor_merge>
+            <processor_clean>
+                <schedule><cron_expr>*/20 * * * *</cron_expr></schedule>
+                <run>
+                    <model>hackathon_ordertransaction/queue_processor::clean</model>
+                </run>
+            </processor_clean>
+        </jobs>
+    </crontab>
     <default>
         <mongotransaction>
             <db>ordertransactions</db>

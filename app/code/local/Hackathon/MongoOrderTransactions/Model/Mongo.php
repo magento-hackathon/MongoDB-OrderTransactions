@@ -12,6 +12,10 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
      */
     private $_tblSales = false;
 
+    const QUOTE = 'quote';
+    const ORDER = 'order';
+    const DELETE = 'delete';
+
 
 
     protected function _construct() {
@@ -24,7 +28,6 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
         // $posts ist eine MongoCollection (vergleichbar mit SQL-Tabelle, wird automatisch angelegt)
 
         $this->_tblSales = $this->_mogodb->sales;
-
     }
 
     private function setState($state) {
@@ -58,9 +61,8 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
         return $this;
     }
 
-   
     public function insertQuote() {
-        $this->setState('quote');
+        $this->setState(self::QUOTE);
 
         $data = array(
             'state' => $this->getState(),
@@ -68,16 +70,16 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
             'quote_id' => $this->getQuoteId(),
         );
 
-
-
         $this->_tblSales->insert($data);
-
     }
 
-    public function getId() {
+    public function getId()
+    {
         if(!is_object($this->getData('_id')))
-            return false;
-        return $this->getData('_id')->__toString();
+        {
+            return null;
+        }
+        return (string) $this->getData('_id');
     }
 
     public function getQuotes() {
@@ -94,40 +96,39 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
     }
 
     public function deleteQuote($quoteId) {
-        if($this->getId() !== false) {
+        if($this->getId()) {
             $this->_tblSales->remove(array('quote_id' => $quoteId, 'justOne' => true));
         }
     }
 
     /**
-	 * Saves the quote in MongoDB.
-	 * 
-	 * @todo: update insertQuote() to use saveQuote() or refactor code
-	 *        to use saveQuote() as save() does automatically choose correctly
-	 *        between update and insert. 
-	 * 
-	 * @return void
-	 */
-	public function saveQuote()
-	{
-		$this->setState('quote');
-		
+     * Saves the quote in MongoDB.
+     *
+     * @todo: update insertQuote() to use saveQuote() or refactor code
+     *        to use saveQuote() as save() does automatically choose correctly
+     *        between update and insert.
+     *
+     * @return void
+     */
+    public function saveQuote()
+    {
+        $this->setState(self::QUOTE);
+
         $data = array(
-        	'_id' => new MongoId($this->getId()),
+            '_id' => new MongoId($this->getId()),
             'state' => $this->getState(),
             'items' => $this->getItems(),
             'quote_id' => $this->getQuoteId(),
         );
 
         $this->_tblSales->save($data);
-	}
-	
+    }
+
     public function saveOrder(Mage_Sales_Model_Order $order)
     {
         $mongoOrder = clone $order;
         $quoteId = $mongoOrder->getQuoteId();
         $this->loadQuote($quoteId);
-        Mage::log(array('_id' => $this->getId(), 'quote_id' => $quoteId));
         if (! $this->getId())
         {
             Mage::throwException(
@@ -135,24 +136,15 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
             );
         }
         $orderId = Mage::helper('hackathon_ordertransaction')->getNewOrderIdFromSequence();
+        $order->setId($orderId);
         $mongoOrder->setId($orderId)
             ->unsetData('customer')
             ->unsetData('quote');
-        Mage::log(
-            array(
-                array('_id' => new MongoId($this->getId())),
-                array('$set' => array(
-                    'order' => $mongoOrder->debug(),
-                    'state' => 'order'
-                ))
-            )
-        );
         $this->_tblSales->update(array('_id' => new MongoId($this->getId())), array('$set' => array(
             'order' => $mongoOrder->getData(),
-            'state' => 'order'
+            'state' => self::ORDER
         )));
         $this->loadQuote($quoteId);
-        Mage::log($this->debug());
 
         return $this;
     }
@@ -179,7 +171,7 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
         $this->_tblSales->update(
             array('quote_id' => $quoteId), array(
                 '$set' => array(
-                    'state' => 'delete'
+                    'state' => self::DELETE
                 )
             )
         );
@@ -212,7 +204,7 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
     public function clean()
     {
         $this->_tblSales->remove(array('state' => 'delete'));
-            if($this->getId() !== false) {
+            if($this->getId()) {
                 $this->setState('deleted')
                     ->updateQuote();
             }
@@ -220,7 +212,7 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
     }
 
     public function updateQuote() {
-        if($this->getId() !== false) {
+        if($this->getId()) {
             $data = array(
             'state' => $this->getState(),
             'items' => $this->getItems(),
