@@ -54,14 +54,15 @@
                     </inventory>
                 </observers>
             </sales_quote_item_qty_set_after>
-            <mongoordertransactions_substract_quote_item_qty>
+            <sales_model_service_quote_submit_success>
                 <observers>
-                    <inventory>
+                    <updateStockInMongoEvent1>
                         <class>hackathon_ordertransaction/observer</class>
-                        <method>catalogInventoryObserverSubtract</method>
-                    </inventory>
+                        <method>reindexQuoteInventory</method>
+                        <type>singleton</type>
+                    </updateStockInMongoEvent1>
                 </observers>
-            </mongoordertransactions_substract_quote_item_qty>
+            </sales_model_service_quote_submit_success>
         </events>
     </global>
     <crontab>

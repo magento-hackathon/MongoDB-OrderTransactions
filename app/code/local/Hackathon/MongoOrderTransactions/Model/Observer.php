@@ -4,6 +4,13 @@ class Hackathon_MongoOrderTransactions_Model_Observer
 {
 
     /**
+     * @var array of qutoe items to reindex
+     */
+    protected $_reindexProducts = array();
+
+    protected $_count = 0;
+
+    /**
      * Updates the stock quantity for the item in MongoDB.
      *
      * @param Varien_Event_Observer $event
@@ -11,6 +18,9 @@ class Hackathon_MongoOrderTransactions_Model_Observer
      */
     public function checkoutCartSaveAfter(Varien_Event_Observer $observer)
     {
+        //@TODO TODO remove function
+        return $this;
+
         $quote = $observer->getCart()->getQuote();
 
         $mongodb = Mage::getSingleton('hackathon_ordertransaction/mongo');
@@ -65,7 +75,16 @@ class Hackathon_MongoOrderTransactions_Model_Observer
         //compare to mongodb
         $diff = $this->differncetoMongo($quoteItem->getQuoteId(),$items,$quoteItem->getProductId());
 
-        var_dump('quoteId', $quoteItem->getQuoteId(),'diff',$diff);
+
+            $this->_count = $this->_count + 1;
+            if($this->_count > 4) {
+                Mage::log('endles loop?');
+                die('fuck');
+            }
+
+        Mage::log('product-id: '.$quoteItem->getProductId());
+        Mage::log('qty: '.$items[$quoteItem->getProductId()]['qty']);
+        Mage::log('diff: '.$diff);
 
         if($diff === false)
             //if there is no cart product change, we are done here
@@ -79,30 +98,26 @@ class Hackathon_MongoOrderTransactions_Model_Observer
                 ->saveQuote();
         }
 
-        die('ok');
-
-
         //second
         //change the product stock
         if($diff < 0) {
             //increase catalog_inventory
             Mage::getSingleton('cataloginventory/stock')->backItemQty($quoteItem->getProductId(), $diff);
+
+Mage::log('back item qty:'.$diff);
+            //@TODO TODO reindex needed?
         } else {
-            die('test2');
-            //create $Observer through event
-            //add new event to this class
-            //reason: we need an observer object
-            Mage::dispatchEvent('mongoordertransactions_substract_quote_item_qty', array('quote' => $quoteItem->getQuote()));
 
+            $itemChanges = array(
+                    $quoteItem->getProductId() => $items[$quoteItem->getProductId()]
+                );
+            $itemChanges[$quoteItem->getProductId()]['qty'] = $diff;
 
-
-            $items = $this->_getProductsQty($quote->getAllItems());
-            $this->_itemsForReindex = Mage::getSingleton('cataloginventory/stock')->registerProductsSale($items);
-
-
-            //reindex stuff
+Mage::log('decreased mysql stock by '.$diff);
+            
+            //decrease stock
+            $this->_reindexProducts = array_merge($this->_reindexProducts,Mage::getSingleton('cataloginventory/stock')->registerProductsSale($itemChanges));
         }
-
 
 
         return $this;
@@ -334,11 +349,16 @@ class Hackathon_MongoOrderTransactions_Model_Observer
      * @param  Varien_Event_Observer $observer
      * @return Hackathon_MongoOrderTransactions_Model_Observer
      */
-    public function catalogInventoryObserverSubtract($observer) {
-        //call stock_item_observer
-        $stockItemObserver = Mage::getModel('cataloginventory/observer');
-        $stockItemObserver->subtractQuoteInventory($observer);
-        $stockItemObserver->reindexQuoteInventory($observer);
+    public function reindexQuoteInventory($observer) {
+        if(count($this->_reindexProducts) > 0) {
+            $productIds = array();
+            foreach ($this->_reindexProducts as $item) {
+                $item->save();
+                $productIds[] = $item->getProductId();
+            }
+            Mage::getResourceSingleton('cataloginventory/indexer_stock')->reindexProducts($productIds);
+            Mage::getResourceSingleton('catalog/product_indexer_price')->reindexProductIds($productIds);
+        }
 
         return $this;
     }
