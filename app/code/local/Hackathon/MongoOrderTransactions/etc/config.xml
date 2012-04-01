@@ -45,6 +45,23 @@
                     </updateStockInMongoEvent3>
                 </observers>
             </checkout_cart_save_after>
+            <sales_quote_item_qty_set_after>
+                <observers>
+                    <inventory>
+                        <class>hackathon_ordertransaction/observer</class>
+                        <method>checkQuoteItemQty</method>
+                        <type>singleton</type>
+                    </inventory>
+                </observers>
+            </sales_quote_item_qty_set_after>
+            <mongoordertransactions_substract_quote_item_qty>
+                <observers>
+                    <inventory>
+                        <class>hackathon_ordertransaction/observer</class>
+                        <method>catalogInventoryObserverSubtract</method>
+                    </inventory>
+                </observers>
+            </mongoordertransactions_substract_quote_item_qty>
         </events>
     </global>
     <default>

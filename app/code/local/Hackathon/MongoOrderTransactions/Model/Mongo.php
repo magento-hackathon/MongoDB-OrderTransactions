@@ -41,6 +41,13 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
         return $this;
     }
 
+    public function getItemByProductId($productId) {
+        $items = $this->getItems();
+        if(isset($items[$productId]))
+            return $items[$productId];
+        return null;
+    }
+
     public function removeItem($productId) {
 
     }
