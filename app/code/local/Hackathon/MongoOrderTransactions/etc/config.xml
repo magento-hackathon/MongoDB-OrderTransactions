@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Hackathon_MongoOrderTransactions>
-            <version>0.0.1</version>
+            <version>0.0.4</version>
         </Hackathon_MongoOrderTransactions>
     </modules>
     <global>
@@ -15,6 +15,10 @@
                 <class>Hackathon_MongoOrderTransactions_Model_Resource</class>
                 <entities>
                     <order_seq><table>hackathon_ordertransaction_seq</table></order_seq>
+                    <order_item_seq><table>hackathon_ordertransaction_item_seq</table></order_item_seq>
+                    <order_address_seq><table>hackathon_ordertransaction_address_seq</table></order_address_seq>
+                    <order_payment_seq><table>hackathon_ordertransaction_payment_seq</table></order_payment_seq>
+                    <order_status_history_seq><table>hackathon_ordertransaction_statushistory_seq</table></order_status_history_seq>
                 </entities>
             </hackathon_ordertransaction_resource>
             <sales>
@@ -22,6 +26,8 @@
                     <order>Hackathon_MongoOrderTransactions_Model_Sales_Order</order>
                     <order_item>Hackathon_MongoOrderTransactions_Model_Sales_Order_Item</order_item>
                     <order_address>Hackathon_MongoOrderTransactions_Model_Sales_Order_Address</order_address>
+                    <order_payment>Hackathon_MongoOrderTransactions_Model_Sales_Order_Payment</order_payment>
+                    <order_status_history>Hackathon_MongoOrderTransactions_Model_Sales_Order_Status_History</order_status_history>
                 </rewrite>
             </sales>
         </models>

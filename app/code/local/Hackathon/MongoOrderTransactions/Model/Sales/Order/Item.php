@@ -4,8 +4,10 @@ class Hackathon_MongoOrderTransactions_Model_Sales_Order_Item extends Mage_Sales
 {
     public function save()
     {
+        Mage::log(__METHOD__);
         if (!$this->getId())
         {
+            Mage::log("Fresh Item Save");
             $this->_getMongo()->saveOrderItem($this);
         }
         else
@@ -19,14 +21,15 @@ class Hackathon_MongoOrderTransactions_Model_Sales_Order_Item extends Mage_Sales
         parent::load($id, $field);
         if (! $this->getId())
         {
+            Mage::log(__METHOD__ . "... ( NOT FOUND IN MySQL)");
             if (is_null($field))
             {
                 $field = $this->getResource()->getIdFieldName();
             }
-            $mongoOrderItem = $this->_getMongo()->loadOrderItem($id, $field);
-            if ($mongoOrderItem->getId())
+            $mongoOrder = $this->_getMongo()->loadOrderItem($id, $field);
+            if ($mongoOrder->getId())
             {
-                $this->setData($mongoOrderItem->getOrder());
+                $this->setData($mongoOrder->getOrder());
             }
         }
         return $this;

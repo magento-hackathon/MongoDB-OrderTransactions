@@ -4,8 +4,10 @@ class Hackathon_MongoOrderTransactions_Model_Sales_Order_Address extends Mage_Sa
 {
     public function save()
     {
+        Mage::log(__METHOD__);
         if (!$this->getId())
         {
+            Mage::log("Fresh Address Save");
             $this->_getMongo()->saveOrderAddress($this);
         }
         else
@@ -19,14 +21,15 @@ class Hackathon_MongoOrderTransactions_Model_Sales_Order_Address extends Mage_Sa
         parent::load($id, $field);
         if (! $this->getId())
         {
+            Mage::log(__METHOD__ . "... ( NOT FOUND IN MySQL)");
             if (is_null($field))
             {
                 $field = $this->getResource()->getIdFieldName();
             }
-            $mongoOrderAddress = $this->_getMongo()->loadOrderAddress($id, $field);
-            if ($mongoOrderAddress->getId())
+            $mongoOrder = $this->_getMongo()->loadOrderAddress($id, $field);
+            if ($mongoOrder->getId())
             {
-                $this->setData($mongoOrderAddress->getOrder());
+                $this->setData($mongoOrder->getOrder());
             }
         }
         return $this;

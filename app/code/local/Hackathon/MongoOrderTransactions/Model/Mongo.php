@@ -116,69 +116,182 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
 	
     public function saveOrder(Mage_Sales_Model_Order $order)
     {
+        Mage::log(__METHOD__);
+        $newRealOrderId = Mage::helper('hackathon_ordertransaction')->getNewOrderIdFromSequence();
         $mongoOrder = clone $order;
-        $mongoOrder->setId(Mage::helper('hackathon_ordertransaction')->getNewOrderIdFromSequence())
+        $mongoOrder->setId($newRealOrderId)
             ->unsetData('customer')
             ->unsetData('quote');
-        $quoteId = $mongoOrder->getQuoteId();
-        return $this->_saveOrderByModelType('order', $mongoOrder, $quoteId, array('state' => 'order'));
+        $order->setId($newRealOrderId);
+
+        $quoteId = $order->getQuoteId();
+        $this->_loadQuoteByQuoteId($quoteId);
+
+        $data = array(
+            'state' => 'order',
+            'order' => $mongoOrder->getData()
+        );
+        return $this->_updateOrder($data);
     }
 
     public function saveOrderItem(Mage_Sales_Model_Order_Item $orderItem)
     {
+        Mage::log(__METHOD__);
+        $newOrderItemId = Mage::helper('hackathon_ordertransaction')->getNewOrderItemIdFromSequence();
         $mongoOrderItem = clone $orderItem;
-        $mongoOrderItem->unsetData('order');
-        $quoteId = $mongoOrderItem->getOrder()->getQuoteId();
-        return $this->_saveOrderByModelType('order_item', $mongoOrderItem, $quoteId);
+        $mongoOrderItem->setId($newOrderItemId)
+            ->unsetData('order')
+            ->unsetData('product');
+        $orderItem->setId($newOrderItemId);
+
+        $quoteId = $orderItem->getOrder()->getQuoteId();
+        $this->_loadQuoteByQuoteId($quoteId);
+
+        $orderItems = (array) $this->getData('order_items');
+        $orderItems[] = $mongoOrderItem->getData();
+        $data = array('order_items' => $orderItems);
+
+        return $this->_updateOrder($data);
+    }
+
+    public function saveOrderPayment(Mage_Sales_Model_Order_Payment $orderPayment)
+    {
+        Mage::log(__METHOD__);
+        $newOrderPaymentId = Mage::helper('hackathon_ordertransaction')->getNewOrderPaymentIdFromSequence();
+        $mongoOrderPayment = clone $orderPayment;
+        $mongoOrderPayment->setId($newOrderPaymentId)
+            ->unsetData('order')
+            ->unsetData('method_instance');
+        $orderPayment->setId($newOrderPaymentId);
+
+        $quoteId = $orderPayment->getOrder()->getQuoteId();
+        $this->_loadQuoteByQuoteId($quoteId);
+
+        $orderPayments = (array) $this->getData('order_payments');
+        $orderPayments[] = $mongoOrderPayment->getData();
+        $data = array('order_payments' => $orderPayments);
+
+        return $this->_updateOrder($data);
+    }
+
+    public function saveOrderStatusHistory(Mage_Sales_Model_Order_Status_History $orderHistory)
+    {
+        Mage::log(__METHOD__);
+        $newOrderStatusHistoryId = Mage::helper('hackathon_ordertransaction')->getNewOrderStatusHistoryIdFromSequence();
+        $mongoOrderHistory = clone $orderHistory;
+        $mongoOrderHistory->setId($newOrderStatusHistoryId)
+            ->unsetData('order');
+        $orderHistory->setId($newOrderStatusHistoryId);
+
+        $quoteId = $orderHistory->getOrder()->getQuoteId();
+        $this->_loadQuoteByQuoteId($quoteId);
+
+        $orderStatuses = (array) $this->getData('order_status_histories');
+        $orderStatuses[] = $mongoOrderHistory->getData();
+        $data = array('order_status_histories' => $orderStatuses);
+
+        return $this->_updateOrder($data);
     }
 
     public function saveOrderAddress(Mage_Sales_Model_Order_Address $orderAddress)
     {
+        Mage::log(__METHOD__);
+        $newOrderAddressId = Mage::helper('hackathon_ordertransaction')->getNewOrderAddressIdFromSequence();
         $mongoOrderAddress = clone $orderAddress;
-        $mongoOrderAddress->unsetData('order');
-        $quoteId = $mongoOrderAddress->getOrder()->getQuoteId();
-        return $this->_saveOrderByModelType('order_address', $mongoOrderAddress, $quoteId);
+        $mongoOrderAddress->setId($newOrderAddressId)
+            ->unsetData('order');
+        $orderAddress->setId($newOrderAddressId);
+
+        $quoteId = $orderAddress->getOrder()->getQuoteId();
+        $this->_loadQuoteByQuoteId($quoteId);
+
+        $orderAddresses = array();
+        foreach ((array) $this->getData('order_addresses') as $item)
+        {
+            $item = Mage::getModel('sales/order_address')->setData($item);
+            if ($item->getAddressType() == $mongoOrderAddress->getAddressType())
+            {
+                $orderAddresses[] = $mongoOrderAddress->getData();
+            }
+            else
+            {
+                $orderAddresses[] = $item->getData();
+            }
+        }
+        if (empty($orderAddresses))
+        {
+            // First address added
+            $orderAddresses[] = $mongoOrderAddress->getData();
+        }
+        $data = array('order_addresses' => $orderAddresses);
+
+        return $this->_updateOrder($data);
     }
 
     public function loadOrder($id, $field)
     {
-        return $this->_loadOrderByModelType('order', $id, $field);
+        return $this->_loadOrderByModelType('order', $id, $field, false);
     }
 
     public function loadOrderItem($id, $field)
     {
-        return $this->_loadOrderByModelType('order_item', $id, $field);
+        return $this->_loadOrderByModelType('order_items', $id, $field);
     }
 
     public function loadOrderAddress($id, $field)
     {
-        return $this->_loadOrderByModelType('order_address', $id, $field);
+        return $this->_loadOrderByModelType('order_addresses', $id, $field);
     }
 
-    protected function _saveOrderByModelType($type, Mage_Core_Model_Abstract $model, $quoteId, array $additionalData = array())
+    public function loadOrderPayment($id, $field)
     {
-        $this->loadQuote($quoteId);
-        if (! $this->getId())
+        return $this->_loadOrderByModelType('order_payments', $id, $field);
+    }
+
+    public function loadOrderStatusHistory($id, $field)
+    {
+        return $this->_loadOrderByModelType('order_status_histories', $id, $field);
+    }
+
+    protected function _loadQuoteByQuoteId($quoteId)
+    {
+        if ($this->getQuoteId() != $quoteId)
         {
-            Mage::throwException(
-                Mage::helper('hackathon_ordertransaction')->__('No associated quote with ID %s found in mongoDb', $quoteId)
-            );
+            $this->loadQuote($quoteId);
+            if (! $this->getId())
+            {
+                Mage::throwException(
+                    Mage::helper('hackathon_ordertransaction')->__('No associated quote with ID %s found in mongoDb', $quoteId)
+                );
+            }
         }
-        $data = array($type => $model->getData());
-        if ($additionalData && is_array($additionalData))
-        {
-            $data = array_merge($data, $additionalData);
-        }
+        return $this;
+    }
+
+    protected function _updateOrder(array $data)
+    {
+        Mage::log(array(array('_id' => new MongoId($this->getId())), array('$set' => $data)));
         $this->_tblSales->update(array('_id' => new MongoId($this->getId())), array('$set' => $data));
         $this->addData($data);
         return $this;
     }
 
-    protected function _loadOrderByModelType($type, $id, $field)
+    protected function _loadOrderByModelType($type, $id, $field, $isArray = true)
     {
         $this->setData(array());
-        $this->_tblSales->ensureIndex("$type.$field");
-        $result = $this->_tblSales->findOne(array("$type.$field" => $id));
+
+        if ($isArray)
+        {
+            // 'oder_items' => array('entity_id' => 8)
+            //$this->_tblSales->ensureIndex("$type.$field");
+            $result = $this->_tblSales->findOne(array($type => array($field => $id)));
+        }
+        else
+        {
+            // 'oder_items.entity_id => 8
+            $this->_tblSales->ensureIndex("$type.$field");
+            $result = $this->_tblSales->findOne(array("$type.$field" => $id));
+        }
         if ($result['_id'])
         {
             $this->setData($result);
