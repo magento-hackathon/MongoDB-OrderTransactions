@@ -13,7 +13,7 @@ class Hackathon_MongoOrderTransactions_Model_Observer
     {
         $quote = $observer->getCart()->getQuote();
 
-        $mongodb = Mage::getSingelton('hackathon_ordertransaction/mongo');
+        $mongodb = Mage::getSingleton('hackathon_ordertransaction/mongo');
         $mongodb->loadQuote($quote->getId());
 		$mongodb->setQuoteId($quote->getId());
         $mongodb->setItems(array());
@@ -22,21 +22,20 @@ class Hackathon_MongoOrderTransactions_Model_Observer
         }
 		$mongodb->saveQuote();
 
+
         return $this;
     }
 
     /**
-     * check if in mongodb is a different cart stored
-     *
-     * @param $productId
-     * @param $qty
+     * check wether in mongodb has a different cart qty
+     * 
      * @return various qty difference or bool false
      */
-    private function differncetoMongo($productId,$qty) {
-        $mongodb = Mage::getSingelton('hackathon_ordertransaction/mongo');
-        $mongodb->loadQuote($this->getQuoteId());
-        if($mongodb->getItemByProductId($productId) != $qty)
-            return $qty - 1*$mongodb->getItemByProductId($productId);
+    private function differncetoMongo($quoteId,$items,$productId) {
+        $mongodb = Mage::getSingleton('hackathon_ordertransaction/mongo');
+        $mongodb->loadQuote($quoteId);
+        if($mongodb->getItemByProductId($productId) != $items[$productId]['qty'])
+            return $items[$productId]['qty'] - 1*$mongodb->getItemByProductId($productId);
         return false;
     }
 
@@ -57,33 +56,56 @@ class Hackathon_MongoOrderTransactions_Model_Observer
             return $this;
         }
 
-        $this->setQuoteId($quoteItem->getQuoteId());
+
+        //get quote item quantities
+        $items = $this->_getProductsQty($quoteItem->getQuote()->getAllItems());
+
 
         //first
         //compare to mongodb
-        $diff = $this->differncetoMongo($quoteItem->getProductId(),$quoteItem->getQty());
+        $diff = $this->differncetoMongo($quoteItem->getQuoteId(),$items,$quoteItem->getProductId());
+
+        var_dump('quoteId', $quoteItem->getQuoteId(),'diff',$diff);
+
         if($diff === false)
             //if there is no cart product change, we are done here
             return $this;
+        else {
+            //adust mongodb qty
+            $mongodb = Mage::getSingleton('hackathon_ordertransaction/mongo');
+            $mongodb->loadQuote($quoteItem->getQuoteId());
+            $mongodb->setQuoteId($quoteItem->getQuoteId());
+            $mongodb->addItem($quoteItem->getProductId(),$items[$quoteItem->getProductId()]['qty'])
+                ->saveQuote();
+        }
+
+        die('ok');
+
 
         //second
         //change the product stock
-
-        if($diff > 0) {
+        if($diff < 0) {
             //increase catalog_inventory
             Mage::getSingleton('cataloginventory/stock')->backItemQty($quoteItem->getProductId(), $diff);
         } else {
+            die('test2');
             //create $Observer through event
             //add new event to this class
             //reason: we need an observer object
             Mage::dispatchEvent('mongoordertransactions_substract_quote_item_qty', array('quote' => $quoteItem->getQuote()));
+
+
+
+            $items = $this->_getProductsQty($quote->getAllItems());
+            $this->_itemsForReindex = Mage::getSingleton('cataloginventory/stock')->registerProductsSale($items);
+
+
+            //reindex stuff
         }
 
 
 
-
-
-
+        return $this;
 
 
 
@@ -319,6 +341,75 @@ class Hackathon_MongoOrderTransactions_Model_Observer
         $stockItemObserver->reindexQuoteInventory($observer);
 
         return $this;
+    }
+
+
+    //copied from Mage_CatalogInventory_Model_Observer
+
+    /**
+     * Adds stock item qty to $items (creates new entry or increments existing one)
+     * $items is array with following structure:
+     * array(
+     *  $productId  => array(
+     *      'qty'   => $qty,
+     *      'item'  => $stockItems|null
+     *  )
+     * )
+     *
+     * @param Mage_Sales_Model_Quote_Item $quoteItem
+     * @param array &$items
+     */
+    protected function _addItemToQtyArray($quoteItem, &$items)
+    {
+        $productId = $quoteItem->getProductId();
+        if (!$productId)
+            return;
+        if (isset($items[$productId])) {
+            $items[$productId]['qty'] += $quoteItem->getTotalQty();
+        } else {
+            $stockItem = null;
+            if ($quoteItem->getProduct()) {
+                $stockItem = $quoteItem->getProduct()->getStockItem();
+            }
+            $items[$productId] = array(
+                'item' => $stockItem,
+                'qty'  => $quoteItem->getTotalQty()
+            );
+        }
+    }
+
+    //copied from Mage_CatalogInventory_Model_Observer
+
+    /**
+     * Prepare array with information about used product qty and product stock item
+     * result is:
+     * array(
+     *  $productId  => array(
+     *      'qty'   => $qty,
+     *      'item'  => $stockItems|null
+     *  )
+     * )
+     * @param array $relatedItems
+     * @return array
+     */
+    protected function _getProductsQty($relatedItems)
+    {
+        $items = array();
+        foreach ($relatedItems as $item) {
+            $productId  = $item->getProductId();
+            if (!$productId) {
+                continue;
+            }
+            $children = $item->getChildrenItems();
+            if ($children) {
+                foreach ($children as $childItem) {
+                    $this->_addItemToQtyArray($childItem, $items);
+                }
+            } else {
+                $this->_addItemToQtyArray($item, $items);
+            }
+        }
+        return $items;
     }
 
 
