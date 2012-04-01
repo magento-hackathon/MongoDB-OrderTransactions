@@ -20,6 +20,8 @@
             <sales>
                 <rewrite>
                     <order>Hackathon_MongoOrderTransactions_Model_Sales_Order</order>
+                    <order_item>Hackathon_MongoOrderTransactions_Model_Sales_Order_Item</order_item>
+                    <order_address>Hackathon_MongoOrderTransactions_Model_Sales_Order_Address</order_address>
                 </rewrite>
             </sales>
         </models>

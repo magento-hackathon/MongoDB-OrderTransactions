@@ -117,7 +117,46 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
     public function saveOrder(Mage_Sales_Model_Order $order)
     {
         $mongoOrder = clone $order;
+        $mongoOrder->setId(Mage::helper('hackathon_ordertransaction')->getNewOrderIdFromSequence())
+            ->unsetData('customer')
+            ->unsetData('quote');
         $quoteId = $mongoOrder->getQuoteId();
+        return $this->_saveOrderByModelType('order', $mongoOrder, $quoteId, array('state' => 'order'));
+    }
+
+    public function saveOrderItem(Mage_Sales_Model_Order_Item $orderItem)
+    {
+        $mongoOrderItem = clone $orderItem;
+        $mongoOrderItem->unsetData('order');
+        $quoteId = $mongoOrderItem->getOrder()->getQuoteId();
+        return $this->_saveOrderByModelType('order_item', $mongoOrderItem, $quoteId);
+    }
+
+    public function saveOrderAddress(Mage_Sales_Model_Order_Address $orderAddress)
+    {
+        $mongoOrderAddress = clone $orderAddress;
+        $mongoOrderAddress->unsetData('order');
+        $quoteId = $mongoOrderAddress->getOrder()->getQuoteId();
+        return $this->_saveOrderByModelType('order_address', $mongoOrderAddress, $quoteId);
+    }
+
+    public function loadOrder($id, $field)
+    {
+        return $this->_loadOrderByModelType('order', $id, $field);
+    }
+
+    public function loadOrderItem($id, $field)
+    {
+        return $this->_loadOrderByModelType('order_item', $id, $field);
+    }
+
+    public function loadOrderAddress($id, $field)
+    {
+        return $this->_loadOrderByModelType('order_address', $id, $field);
+    }
+
+    protected function _saveOrderByModelType($type, Mage_Core_Model_Abstract $model, $quoteId, array $additionalData = array())
+    {
         $this->loadQuote($quoteId);
         if (! $this->getId())
         {
@@ -125,25 +164,21 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
                 Mage::helper('hackathon_ordertransaction')->__('No associated quote with ID %s found in mongoDb', $quoteId)
             );
         }
-        $orderId = Mage::helper('hackathon_ordertransaction')->getNewOrderIdFromSequence();
-        $order->setId($orderId);
-        $mongoOrder->setId($orderId)
-            ->unsetData('customer')
-            ->unsetData('quote');
-        $this->_tblSales->update(array('_id' => new MongoId($this->getId())), array('$set' => array(
-            'order' => $mongoOrder->getData(),
-            'state' => 'order'
-        )));
-        $this->loadQuote($quoteId);
-
+        $data = array($type => $model->getData());
+        if ($additionalData && is_array($additionalData))
+        {
+            $data = array_merge($data, $additionalData);
+        }
+        $this->_tblSales->update(array('_id' => new MongoId($this->getId())), array('$set' => $data));
+        $this->addData($data);
         return $this;
     }
 
-    public function loadOrder($id, $field)
+    protected function _loadOrderByModelType($type, $id, $field)
     {
         $this->setData(array());
-        $this->_tblSales->ensureIndex("order.$field");
-        $result = $this->_tblSales->findOne(array("order.$field" => $id));
+        $this->_tblSales->ensureIndex("$type.$field");
+        $result = $this->_tblSales->findOne(array("$type.$field" => $id));
         if ($result['_id'])
         {
             $this->setData($result);
