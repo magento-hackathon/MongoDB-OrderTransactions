@@ -53,8 +53,42 @@
                     </updateStockInMongoEvent3>
                 </observers>
             </checkout_cart_save_after>
+            <sales_quote_item_qty_set_after>
+                <observers>
+                    <inventory>
+                        <class>hackathon_ordertransaction/observer</class>
+                        <method>checkQuoteItemQty</method>
+                        <type>singleton</type>
+                    </inventory>
+                </observers>
+            </sales_quote_item_qty_set_after>
+            <sales_model_service_quote_submit_success>
+                <observers>
+                    <updateStockInMongoEvent1>
+                        <class>hackathon_ordertransaction/observer</class>
+                        <method>reindexQuoteInventory</method>
+                        <type>singleton</type>
+                    </updateStockInMongoEvent1>
+                </observers>
+            </sales_model_service_quote_submit_success>
         </events>
     </global>
+    <crontab>
+        <jobs>
+            <processor_merge>
+                <schedule><cron_expr>*/5 * * * *</cron_expr></schedule>
+                <run>
+                    <model>hackathon_ordertransaction/queue_processor::merge</model>
+                </run>
+            </processor_merge>
+            <processor_clean>
+                <schedule><cron_expr>*/20 * * * *</cron_expr></schedule>
+                <run>
+                    <model>hackathon_ordertransaction/queue_processor::clean</model>
+                </run>
+            </processor_clean>
+        </jobs>
+    </crontab>
     <default>
         <mongotransaction>
             <db>ordertransactions</db>
