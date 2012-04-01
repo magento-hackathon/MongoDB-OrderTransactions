@@ -10,7 +10,7 @@ class Hackathon_MongoOrderTransactions_Model_Queue_Processor
      *
      * @return null
      **/
-    public function merge()
+    public static function merge()
     {
         $mongo = Mage::getModel('hackathon_ordertransaction/mongo');
         $quotes = $mongo->getQuotes();
@@ -35,7 +35,7 @@ class Hackathon_MongoOrderTransactions_Model_Queue_Processor
      *
      * @return null
      **/
-    public function clean()
+    public static function clean()
     {
         try {
             Mage::getModel('hackathon_ordertransaction/mongo')->clean();
