@@ -1,14 +1,14 @@
 <?php
 
-class Hackathon_MongoOrderTransactions_Model_Sales_Order extends Mage_Sales_Model_Order
+class Hackathon_MongoOrderTransactions_Model_Sales_Order_Payment extends Mage_Sales_Model_Order_Payment
 {
     public function save()
     {
         Mage::log(__METHOD__);
         if (!$this->getId())
         {
-            Mage::log("Fresh Order Save");
-            $this->_getMongo()->saveOrder($this);
+            Mage::log("Fresh Payment Save");
+            $this->_getMongo()->saveOrderPayment($this);
         }
         else
         {
@@ -26,7 +26,7 @@ class Hackathon_MongoOrderTransactions_Model_Sales_Order extends Mage_Sales_Mode
             {
                 $field = $this->getResource()->getIdFieldName();
             }
-            $mongoOrder = $this->_getMongo()->loadOrder($id, $field);
+            $mongoOrder = $this->_getMongo()->loadOrderPayment($id, $field);
             if ($mongoOrder->getId())
             {
                 $this->setData($mongoOrder->getOrder());

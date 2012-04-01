@@ -282,16 +282,17 @@ class Hackathon_MongoOrderTransactions_Model_Mongo extends Varien_Object
 
         if ($isArray)
         {
+            $cond = array($type => array($field => $id));
             // 'oder_items' => array('entity_id' => 8)
             //$this->_tblSales->ensureIndex("$type.$field");
-            $result = $this->_tblSales->findOne(array($type => array($field => $id)));
         }
         else
         {
             // 'oder_items.entity_id => 8
             $this->_tblSales->ensureIndex("$type.$field");
-            $result = $this->_tblSales->findOne(array("$type.$field" => $id));
+            $cond = array("$type.$field" => "$id");
         }
+        $result = $this->_tblSales->findOne($cond);
         if ($result['_id'])
         {
             $this->setData($result);
